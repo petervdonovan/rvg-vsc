@@ -1,0 +1,47 @@
+{
+  "name": "rvg-vsc",
+  "displayName": "rvg-vsc",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "main": "out/extension",
+  "categories": [
+    "Programming Languages"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@types/vscode": "^1.49.0",
+    "esbuild": "^0.14.2"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "rvg",
+        "aliases": [
+          "rvg",
+          "rvg"
+        ],
+        "extensions": [
+          ".rvg"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "rvg",
+        "scopeName": "source.rvg",
+        "path": "./syntaxes/rvg.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "compile": "npm run esbuild-base -- --sourcemap",
+    "watch": "npm run esbuild-base -- --sourcemap --watch",
+    "install": "npm run compile"
+  }
+}

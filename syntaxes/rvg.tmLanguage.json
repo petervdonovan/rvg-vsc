@@ -1,0 +1,21 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "rvg",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.rvg",
+				"match": "(?<=\\s|\\[)(lam|mu|def)(?=\\s|^|\\[|\\])"
+			}]
+		}
+	},
+	"scopeName": "source.rvg"
+}
