@@ -4,7 +4,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 
 import { doBuild } from './projectdata'
-import { deserializeRange } from './serialization';
+import { DeserializedRange, deserializeRange, SerializedRange } from './serialization';
 
 const tokenTypes = [
     'parameter', 'variable', 'number', 'function', 'label', 'string', 'number', 'macro'
@@ -15,16 +15,17 @@ const tokenModifiers = [
 type tokenJson = {
     kind: string,
     modifier: string,
-    range: number[][]
+    range: SerializedRange
 }
 export const legend = new vscode.SemanticTokensLegend(tokenTypes, tokenModifiers);
 export const semanticTokensProvider: vscode.DocumentSemanticTokensProvider = {
     provideDocumentSemanticTokens(document: vscode.TextDocument, _: vscode.CancellationToken) {
         const tokensBuilder: vscode.SemanticTokensBuilder = new vscode.SemanticTokensBuilder(legend)
-        for (const {file, output} of doBuild<tokenJson>(['tokens'], document)) {
-            console.log("tokens provider sees token from file: " + file)
-            if (path.resolve(file) == path.resolve(document.fileName)) {
-                tokensBuilder.push(deserializeRange(output.range), output.kind, [])
+        for (const token of doBuild<tokenJson>(['tokens'], document)) {
+            console.log("tokens provider sees token from file: " + token.range.file)
+            if (token.range.file == document.uri.fsPath) {
+                let r = deserializeRange(token.range)
+                tokensBuilder.push(r.range, token.kind, [])
             }
         }
         return tokensBuilder.build();

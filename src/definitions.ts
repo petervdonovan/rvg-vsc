@@ -2,15 +2,15 @@
 
 import * as vscode from 'vscode'
 import { doBuild } from './projectdata'
-import { deserializeRange } from './serialization'
+import { deserializeRange, SerializedRange } from './serialization'
 
 type definition = {
-    range: number[][]
+    range: SerializedRange
 }
 
 const provider: vscode.DefinitionProvider = {
     provideDefinition(document, position, _) {
-        return doBuild<definition>(['definition', `${position.line}`, `${position.character}`], document).map(d => new vscode.Location(vscode.Uri.parse(d.file), deserializeRange(d.output.range)))
+        return doBuild<definition>(['definition', `${position.line}`, `${position.character}`, document.fileName], document).map(d => new vscode.Location(vscode.Uri.parse(d.range.file), deserializeRange(d.range).range))
     }
 }
 

@@ -30,29 +30,18 @@ export const getProjectConfig: () => ProjectConfig = () => {
     return projectconfig
 }
 
-type buildOutput<T> = {
-    file: string,
-    output: T
-}
-
-const fileMarker = "file: "
-
-export const doBuild: <T>(args: string[], document: vscode.TextDocument) => buildOutput<T>[] = <T>(args, document) => {
+export const doBuild: <T>(args: string[], document: vscode.TextDocument) => T[] = <T>(args, document) => {
     const filesToBuild: string = getProjectConfig().buildSequences.find((it: string[]) => it.some(it => path.resolve(it) == path.resolve(document.fileName)))?.join(" ") || document.fileName
     console.log(`executing ${`rvg ${args.join(" ")} ${filesToBuild}`}`)
     const stdout = execSync(`rvg ${args.join(" ")} ${filesToBuild}`).toString().split('\n')
-    const jsons: buildOutput<T>[] = []
+    const jsons: T[] = []
     let file: string = ""
     for (const line of stdout.filter(s => s.length > 0)) {
         console.log(line)
-        if (line.startsWith(fileMarker)) {
-            file = line.slice(fileMarker.length)
-        } else {
-            try {
-                jsons.push({file: file, output: JSON.parse(line)})
-            } catch (error) {
-                console.error("JSON parse failed on " + line)
-            }
+        try {
+            jsons.push(JSON.parse(line))
+        } catch (error) {
+            console.error("JSON parse failed on " + line)
         }
     }
     return jsons
