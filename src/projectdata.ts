@@ -1,24 +1,59 @@
 'use strict'
 
+import path from 'path'
 import * as vscode from 'vscode'
+import { execSync } from 'child_process';
 
 type ProjectConfig = {
-    buildSequence: string[]
+    buildSequences: string[][]
 }
 
-let projectconfig: ProjectConfig | null = null
+let projectconfig: ProjectConfig = { buildSequences: [] }
 
-const updateProjectConfig = async () => {
-    const buildFiles = await vscode.workspace.findFiles("rvgbuild")
-    if (buildFiles && buildFiles.length > 0) {
-        const buildSequence = new TextDecoder().decode(await vscode.workspace.fs.readFile(buildFiles[0]))
-        projectconfig = { buildSequence: buildSequence.split("->") }
+async function updateProjectConfig() {
+    console.log("updating project config")
+    const buildFiles = await vscode.workspace.findFiles("**/rvgbuild")
+    console.log("buildfiles=" + buildFiles)
+    let buildSequences: string[][] = []
+    for (const f of buildFiles) {
+        const buildSequence = new TextDecoder().decode(await vscode.workspace.fs.readFile(f))
+        buildSequences = buildSequences.concat(buildSequence.split("\n").map(it => it.split("->").map(it => path.resolve(path.dirname(f.fsPath), it.trim()))))
     }
-    projectconfig = null
+    console.log("buildSequences=" + buildSequences)
+    projectconfig = { buildSequences: buildSequences }
 }
 
-vscode.workspace.createFileSystemWatcher("rvgbuild").onDidChange(updateProjectConfig)
+vscode.workspace.createFileSystemWatcher("**/rvgbuild").onDidChange(updateProjectConfig)
+vscode.workspace.onDidOpenTextDocument(updateProjectConfig)
 
-export const getProjectConfig: () => ProjectConfig | null = () => {
+export const getProjectConfig: () => ProjectConfig = () => {
     return projectconfig
+}
+
+type buildOutput<T> = {
+    file: string,
+    output: T
+}
+
+const fileMarker = "file: "
+
+export const doBuild: <T>(args: string[], document: vscode.TextDocument) => buildOutput<T>[] = <T>(args, document) => {
+    const filesToBuild: string = getProjectConfig().buildSequences.find((it: string[]) => it.some(it => path.resolve(it) == path.resolve(document.fileName)))?.join(" ") || document.fileName
+    console.log(`executing ${`rvg ${args.join(" ")} ${filesToBuild}`}`)
+    const stdout = execSync(`rvg ${args.join(" ")} ${filesToBuild}`).toString().split('\n')
+    const jsons: buildOutput<T>[] = []
+    let file: string = ""
+    for (const line of stdout.filter(s => s.length > 0)) {
+        console.log(line)
+        if (line.startsWith(fileMarker)) {
+            file = line.slice(fileMarker.length)
+        } else {
+            try {
+                jsons.push({file: file, output: JSON.parse(line)})
+            } catch (error) {
+                console.error("JSON parse failed on " + line)
+            }
+        }
+    }
+    return jsons
 }

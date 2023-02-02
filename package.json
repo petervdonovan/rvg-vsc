@@ -15,6 +15,11 @@
     "@types/vscode": "^1.49.0",
     "esbuild": "^0.14.2"
   },
+  "configurationDefaults": {
+    "rvg": {
+      "editor.semanticHighlighting.enabled": true
+    }
+  },
   "contributes": {
     "languages": [
       {

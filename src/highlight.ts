@@ -1,21 +1,13 @@
 'use strict'
 
-import { execSync } from 'child_process';
-import {
-    TextDocument,
-    DocumentSemanticTokensProvider,
-    ProviderResult,
-    SemanticTokens,
-    SemanticTokensBuilder,
-    SemanticTokensLegend,
-    Range,
-    Position,
-    CancellationToken,
-    window
-} from 'vscode';
+import path from 'path';
+import * as vscode from 'vscode';
+
+import { doBuild } from './projectdata'
+import { deserializeRange } from './serialization';
 
 const tokenTypes = [
-    'parameter', 'variable', 'number', 'function', 'label'
+    'parameter', 'variable', 'number', 'function', 'label', 'string', 'number', 'macro'
 ];
 const tokenModifiers = [
     'definition', 'defaultLibrary'
@@ -23,17 +15,17 @@ const tokenModifiers = [
 type tokenJson = {
     kind: string,
     modifier: string,
-    startInclusive: number[],
-    endExclusive: number[]
+    range: number[][]
 }
-export const legend = new SemanticTokensLegend(tokenTypes, tokenModifiers);
-export const semanticTokensProvider: DocumentSemanticTokensProvider = {
-    provideDocumentSemanticTokens(document: TextDocument, _: CancellationToken) {
-        const tokensBuilder: SemanticTokensBuilder = new SemanticTokensBuilder(legend);
-        const stdout: string[] = execSync(`rvg tokens ${document.fileName}`).toString().split("\n")
-        for (const line of stdout.filter(s => s.length > 0)) {
-            const token: tokenJson = JSON.parse(line)
-            tokensBuilder.push(new Range(new Position(token.startInclusive[0], token.startInclusive[1]), new Position(token.endExclusive[0], token.endExclusive[1])), token.kind, [])
+export const legend = new vscode.SemanticTokensLegend(tokenTypes, tokenModifiers);
+export const semanticTokensProvider: vscode.DocumentSemanticTokensProvider = {
+    provideDocumentSemanticTokens(document: vscode.TextDocument, _: vscode.CancellationToken) {
+        const tokensBuilder: vscode.SemanticTokensBuilder = new vscode.SemanticTokensBuilder(legend)
+        for (const {file, output} of doBuild<tokenJson>(['tokens'], document)) {
+            console.log("tokens provider sees token from file: " + file)
+            if (path.resolve(file) == path.resolve(document.fileName)) {
+                tokensBuilder.push(deserializeRange(output.range), output.kind, [])
+            }
         }
         return tokensBuilder.build();
     }
