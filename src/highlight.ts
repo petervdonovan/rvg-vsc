@@ -22,7 +22,6 @@ export const semanticTokensProvider: vscode.DocumentSemanticTokensProvider = {
     provideDocumentSemanticTokens(document: vscode.TextDocument, _: vscode.CancellationToken) {
         const tokensBuilder: vscode.SemanticTokensBuilder = new vscode.SemanticTokensBuilder(legend)
         for (const token of doBuild<tokenJson>(['tokens'], document)) {
-            console.log("tokens provider sees token from file: " + token.range.file)
             if (token.range.file == document.uri.fsPath) {
                 let r = deserializeRange(token.range)
                 tokensBuilder.push(r.range, token.kind, [])
