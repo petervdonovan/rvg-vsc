@@ -7,6 +7,12 @@
 		},
 		{
 			"include": "#strings"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#variables"
 		}
 	],
 	"repository": {
@@ -15,6 +21,73 @@
 				"name": "keyword.control.rvg",
 				"match": "(?<=\\s|\\[)(lam|mu|def)(?=\\s|^|\\[|\\])"
 			}]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"begin": "(?<={|)\\|[^\\]\\[\\(\\)\\{\\}]",
+					"end": "\\|(?=})",
+					"patterns": [
+						{
+							"include": "#list"
+						},
+						{
+							"name": "string",
+							"match": "[^|]+"
+						}
+					]
+				},
+				{
+					"name": "string",
+					"begin": "(?<={|\\])[^\\]\\[\\(\\)\\{\\}](?!\\|)",
+					"end": "(?=}|{|]|\\[)",
+					"patterns": [
+						{
+							"name": "entity.name.type",
+							"match": "((?<=param\\s+)[^\\s\\(\\[{]+(?=\\s))"
+						},
+						{
+							"name": "comment.block.documentation",
+							"match": "(@param\\b)|(@brief\\b)"
+						}
+					]
+				}
+			]
+		},
+		"functions": {
+			"patterns": [{
+				"name": "entity.name.function",
+				"match": "(?<=(\\[)\\s*)[^\\s\\(\\[{]+(?=\\s)"
+			}]
+		},
+		"variables": {
+			"patterns": [{
+				"name": "entity.name.type",
+				"match": "(?<=(\\()\\s*)[^\\(\\)\\s\\[{]+(?=\\s|\\(|\\))"
+			}]
+		},
+		"list": {
+			"name": "substitution",
+			"begin": "(?=\\|\\[)",
+			"end": "(?<=\\])",
+			"patterns": [
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#functions"
+				},
+				{
+					"include": "#variables"
+				},
+				{
+					"name": "variable.name",
+					"match": "\\b\\S+\\b"
+				}
+			]
 		}
 	},
 	"scopeName": "source.rvg"
