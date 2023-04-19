@@ -12,7 +12,7 @@ let projectconfig: ProjectConfig = { buildSequences: [] }
 
 async function updateProjectConfig() {
     console.log("updating project config")
-    const buildFiles = await vscode.workspace.findFiles("**/rvgbuild")
+    const buildFiles = await vscode.workspace.findFiles("**/build.rbu")
     let buildSequences: string[][] = []
     for (const f of buildFiles) {
         const buildSequence = new TextDecoder().decode(await vscode.workspace.fs.readFile(f))
@@ -21,7 +21,7 @@ async function updateProjectConfig() {
     projectconfig = { buildSequences: buildSequences }
 }
 
-vscode.workspace.createFileSystemWatcher("**/rvgbuild").onDidChange(updateProjectConfig)
+vscode.workspace.createFileSystemWatcher("**/build.rbu").onDidChange(updateProjectConfig)
 vscode.workspace.onDidOpenTextDocument(updateProjectConfig)
 
 export const getProjectConfig: () => ProjectConfig = () => {
