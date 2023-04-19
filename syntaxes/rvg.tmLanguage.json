@@ -13,6 +13,9 @@
 		},
 		{
 			"include": "#variables"
+		},
+		{
+			"include": "#numbers"
 		}
 	],
 	"repository": {
@@ -49,6 +52,9 @@
 						{
 							"name": "comment.block.documentation",
 							"match": "(@param\\b)|(@brief\\b)"
+						},
+						{
+							"include": "#numbers"
 						}
 					]
 				}
@@ -88,6 +94,12 @@
 					"match": "\\b\\S+\\b"
 				}
 			]
+		},
+		"numbers": {
+			"patterns": [{
+				"name": "constant.numeric",
+				"match": "\\b\\d\\w*\\b"
+			}]
 		}
 	},
 	"scopeName": "source.rvg"
